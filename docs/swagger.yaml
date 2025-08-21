@@ -1,0 +1,127 @@
+basePath: /api
+definitions:
+  dto.CreateMessageRequest:
+    properties:
+      content:
+        maxLength: 255
+        type: string
+      recipientPhoneNumber:
+        type: string
+    required:
+    - content
+    - recipientPhoneNumber
+    type: object
+  dto.ErrorResponse:
+    properties:
+      error:
+        type: string
+    type: object
+  dto.MessageJobResponse:
+    properties:
+      status:
+        type: string
+    type: object
+  dto.MessageResponse:
+    properties:
+      content:
+        type: string
+      id:
+        type: integer
+      recipient_phone_number:
+        type: string
+    type: object
+  dto.MessagesResponse:
+    properties:
+      messages:
+        items:
+          $ref: '#/definitions/dto.MessageResponse'
+        type: array
+      total:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Sends and receives messages
+  title: Messaging Service
+  version: "1.0"
+paths:
+  /messages:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new message in the database with 'pending' status using
+        the provided content and phone number.
+      parameters:
+      - description: Message Information
+        in: body
+        name: message
+        required: true
+        schema:
+          $ref: '#/definitions/dto.CreateMessageRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/dto.MessageResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Creates a new message
+      tags:
+      - Messages
+  /messages/sent:
+    get:
+      description: Fetches all messages  with status "sent" by pagination.
+      parameters:
+      - description: page number
+        in: query
+        name: page
+        type: integer
+      - description: size of page
+        in: query
+        name: pageSize
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/dto.MessagesResponse'
+            type: array
+        "204":
+          description: No Content
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Gets sent messages
+      tags:
+      - Messages
+  /messages/toggle-job:
+    put:
+      description: Toggles the sending messages job based on its current state.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/dto.MessageJobResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/dto.ErrorResponse'
+      summary: Starts or stops sending messages job
+      tags:
+      - Messages
+swagger: "2.0"
